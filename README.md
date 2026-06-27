@@ -39,19 +39,21 @@ gantt
 
 ```mermaid
 flowchart LR
-    A["1 Descubrimiento<br/>D-30"] --> B["2 Registro<br/>D-30 a D-10"]
-    B --> C{"3 Curacion<br/>D-9"}
-    C -->|aprueba| D["4 Confirmado<br/>D-8"]
-    C -->|rechaza| X["3b Rechazo / Waitlist<br/>D-8"]
-    D --> E["5 Badge foto+QR<br/>D-7"]:::propio
-    E --> F["6 Envio multicanal<br/>D-7"]:::propio
-    F --> G["7 Recordatorios<br/>D-2"]
-    G --> H["8 Check-in QR<br/>Dia D"]
-    H --> I["9 Certificados<br/>D+2"]:::propio
-    I --> J["10 Difusion / Analytics<br/>D+3"]
+    A["1 Registro datos<br/>(sin foto)"] --> B{"2 Curacion<br/>aprobamos a mano"}
+    B -->|sin cupo| W["Waitlist<br/>libera -> aprueba"]
+    W -.->|cupo libre| B
+    B -->|aprobado| C["3 Mail MAGIC LINK"]:::propio
+    C --> D["4 Sube FOTO<br/>(datos precargados)"]:::propio
+    D --> E["5 Genera QR + badge<br/>descarga + mail"]:::propio
+    E --> F["6 Recordatorio<br/>D-2 / dia"]
+    F --> G["7 Check-in QR<br/>Dia D"]
+    G --> H["8 Certificado<br/>post-evento"]:::propio
 
     classDef propio fill:#7f1d1d,stroke:#ef5350,color:#fff;
 ```
+
+> 🔴 rojo = self-service badge (magic link + subir foto + generar + certificado) → **Luma NO lo hace, app propia**.
+> ✅ Luma cubre registro (1), aprobación (2), recordatorio (6), check-in (7).
 
 ---
 
