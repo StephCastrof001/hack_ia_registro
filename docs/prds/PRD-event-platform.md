@@ -90,14 +90,25 @@ guests (
   status text,                 -- enum abajo
   magic_token text unique,     -- para link self-service
   qr_token text unique,        -- para check-in (distinto del id)
+  consent_at timestamptz,      -- ADR-001 ley 29733
+  consent_version text,        -- aviso de privacidad aceptado
   created_at, confirmed_at, checked_in_at timestamptz
 )
 
 status enum:
-  registered -> waitlisted -> confirmed -> photo_pending -> badge_ready
-             -> checked_in -> no_show
-  (+ rejected, canceled)
+  registered -> confirmed -> photo_pending -> badge_ready -> checked_in -> no_show
+  (+ waitlisted, rejected, canceled)
 ```
+
+### Decisiones del grill (2026-06-27) — ver CONTEXT.md + ADR-001
+
+- D1 Aprobación **mixta**: auto si hay cupo + expulsión manual posible.
+- D2 Foto **obligatoria** (bloquea `badge_ready`).
+- D3 **Una sola** plantilla de badge.
+- D4 Certificado a **todos los confirmados** (no exige check-in → cert puede generarse al confirmar).
+- D5 Check-in: staff con celular, escaneo QR, **online** (sin modo offline).
+- D7 Datos: **Ley 29733** → consent + borrado de fotos a 30 días (ADR-001).
+- D8 Recordatorio **manual** (botón). D9 Waitlist **promoción manual**.
 
 ## 6. Decisiones de testing
 
