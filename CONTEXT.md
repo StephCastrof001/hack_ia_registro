@@ -55,13 +55,19 @@ estados de salida: rejected (expulsión manual), canceled (se baja)
 
 Logo en `Logo/hackia_primary_dark.svg` (+ `.png`). Paleta extraída del SVG:
 
-| Token | Hex | Uso |
-|---|---|---|
-| `bg` | `#0c0c14` | fondo del badge (negro azulado — NO `#000000`) |
-| `primary` | `#6f5ff2` | violeta — borde, rol, acento |
-| `secondary` | `#00cfaa` | turquesa — QR/detalle |
-| `text` | `#e8e8f0` | nombre/rol (casi blanco) |
-| `qr_bg` | `#FFFFFF` | cuadro blanco bajo el QR (escaneable) |
+| Token | Hex | Rol oficial | Uso |
+|---|---|---|---|
+| `bg` | `#0c0c14` | **Canvas** | fondo del badge (negro azulado — NO `#000000`) |
+| `primary` | `#6f5ff2` | **Primario** | violeta — borde, rol, acento |
+| `accent` | `#00cfaa` | **Acento** | turquesa — QR/detalle |
+| `text` | `#e8e8f0` | **Texto** | nombre/rol (casi blanco) |
+| `qr_bg` | `#FFFFFF` | — | cuadro blanco bajo el QR (escaneable) |
+
+**Tipografía:** Space Grotesk Bold (Google Fonts, free).
+→ satori EXIGE el archivo de fuente: descargar `.ttf`/`.woff` a `assets/fonts/` y pasarlo al render.
+
+**Generador de imágenes de marca:** Flux Dev / Midjourney v6 (para fondos/social, NO para el badge).
+El badge se genera con satori (texto+foto+QR exactos), no con IA.
 
 > ⚠️ Badge bg = `#0c0c14` EXACTO para que el fondo del logo funda sin recuadro.
 > Estos hex viven en `events.brand` (jsonb), no hardcoded → cumple C7.
