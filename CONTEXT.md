@@ -51,6 +51,41 @@ estados de salida: rejected (expulsión manual), canceled (se baja)
 | D8 | Recordatorios | Manual (botón) |
 | D9 | Waitlist | Promoción manual |
 
+## Marca — HACK IA (paleta del logo)
+
+Logo en `Logo/hackia_primary_dark.svg` (+ `.png`). Paleta extraída del SVG:
+
+| Token | Hex | Uso |
+|---|---|---|
+| `bg` | `#0c0c14` | fondo del badge (negro azulado — NO `#000000`) |
+| `primary` | `#6f5ff2` | violeta — borde, rol, acento |
+| `secondary` | `#00cfaa` | turquesa — QR/detalle |
+| `text` | `#e8e8f0` | nombre/rol (casi blanco) |
+| `qr_bg` | `#FFFFFF` | cuadro blanco bajo el QR (escaneable) |
+
+> ⚠️ Badge bg = `#0c0c14` EXACTO para que el fondo del logo funda sin recuadro.
+> Estos hex viven en `events.brand` (jsonb), no hardcoded → cumple C7.
+
+## Estrategia de versiones (v1 simple → v2 desacoplada)
+
+- **v1 (MVP con Luma):** Luma hace registro/aprobación/check-in. Construir SOLO:
+  export de guests → generar badge → enviar. Validar rápido con mínimo build.
+- **v2 (inhouse desacoplada):** registro/check-in propios (Supabase), Luma fuera.
+
+**Puerto para swap barato (definir desde v1):**
+
+```ts
+interface RegistroProvider {
+  getGuests(eventId: string): Promise<Guest[]>
+  onApproved(guest: Guest): Promise<void>   // dispara magic link
+}
+// v1: LumaProvider implements RegistroProvider     (CSV/API Luma)
+// v2: InhouseProvider implements RegistroProvider   (form propio + Supabase)
+```
+
+Badge/email/check-in dependen de `RegistroProvider`, NUNCA de Luma directo.
+Swap v1→v2 = escribir `InhouseProvider`, cero cambios en el resto (criterio C3).
+
 ## Aún por definir (no bloqueante para v0.1)
 
 - Capacidad exacta del primer evento (asumido 50).
