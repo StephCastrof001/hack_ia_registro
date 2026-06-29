@@ -18,6 +18,13 @@ export function buildApprovalEmail(input: ApprovalEmailInput): {
 } {
 	const safeName = escapeHtml(input.name);
 
+	// valida esquema (solo http/https) y escapa la URL en contexto de atributo
+	const parsed = new URL(input.magicUrl);
+	if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+		throw new Error("magicUrl: esquema no permitido");
+	}
+	const safeUrl = escapeHtml(parsed.toString());
+
 	const html = `
 <!DOCTYPE html>
 <html lang="es">
@@ -30,7 +37,7 @@ export function buildApprovalEmail(input: ApprovalEmailInput): {
     <h1 style="color: #6f5ff2; margin-top: 0;">¡Estás dentro de HACK IA!</h1>
     <p style="font-size: 16px; line-height: 1.5;">Hola <strong>${safeName}</strong>,</p>
     <p style="font-size: 16px; line-height: 1.5;">Tu solicitud ha sido aprobada. Por favor, usa el siguiente enlace para confirmar y obtener tu credencial de acceso.</p>
-    <a href="${input.magicUrl}" style="display: inline-block; background-color: #6f5ff2; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 16px;">
+    <a href="${safeUrl}" style="display: inline-block; background-color: #6f5ff2; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 16px;">
       Ver mi credencial
     </a>
   </div>

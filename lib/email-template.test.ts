@@ -20,6 +20,12 @@ describe("buildApprovalEmail", () => {
 		expect(result.subject.length).toBeGreaterThan(0);
 	});
 
+	it("rejects non-http(s) magicUrl schemes (XSS hardening)", () => {
+		expect(() =>
+			buildApprovalEmail({ name: "Ana", magicUrl: "javascript:alert(1)" }),
+		).toThrow();
+	});
+
 	it("escapes malicious characters in the name", () => {
 		const result = buildApprovalEmail({
 			name: '<script>alert("XSS")</script>&',
