@@ -1,176 +1,142 @@
-# PRD — Plataforma de Eventos (registro → badge → check-in → certificado)
+# PRD — Plataforma de Eventos HACK IA (registro → badge → check-in)
 
-> Formato estilo `/to-prd` (mattpocock). Sintetiza la conversación previa. No re-entrevista.
-> Estado: v0.2 · Fecha: 2026-06-27 · Owner: Stephanie · Marca: HACK IA
-> Cambios v0.2: estrategia v1(Luma free CSV)→v2(inhouse) + puerto RegistroProvider; brand kit (paleta + Space Grotesk Bold); aprobación mixta; ver CONTEXT.md.
+> Estilo `/to-prd` (mattpocock). Síntesis de la conversación, sin re-entrevista.
+> Estado: **v0.3** · Fecha: 2026-06-28 · Owner: Stephanie · Marca: HACK IA
+> v0.3 = **pivote a sistema inhouse** (registro propio + aprobación + QR propio + check-in).
+> Luma pasa a **seed/plan B** detrás del puerto. Ver decisiones P1-P12 en `CONTEXT.md`.
+> Supersede v0.2 (estrategia v1=Luma). ADRs: ADR-001 (datos), ADR-002 (QR dual).
 
 ---
 
-## 1. Problem statement
+## Problem Statement
 
-Organizamos eventos de comunidad (primer caso: ~50 asistentes). Hoy no tenemos forma
-propia de: registrar asistentes, **curarlos** (aprobar a mano), generar **badges
-personalizados** (foto + QR + branding), hacer **check-in** por QR, y emitir
-**certificados** post-evento. Luma free no cubre badge con foto, WhatsApp, ni
-certificados; la API de Luma exige Luma Plus (pago) que no queremos.
+Organizamos eventos de comunidad gratuitos (primer caso: lanzamiento HACK IA, ~50 asistentes).
+No tenemos forma **propia** de: registrar asistentes con un formulario nuestro, **curarlos**
+(aprobar a mano), generar **badge personalizado** (foto + QR + branding), hacer **check-in**
+por QR en puerta, y dar al asistente una **imagen para redes**.
 
-Necesitamos un sistema **propio, $0/mínimo costo, desacoplado y escalable a múltiples
-eventos**, que arranque con 1 evento.
+Luma free no cubre badge con foto ni imagen social; su API exige Luma Plus (pago). Crafter
+resolvió el badge pero **delegando registro/admin a Luma** (lock-in + costo). Queremos un
+sistema **propio, $0, desacoplado y multi-evento** desde el día 1.
 
-## 2. Solución (resumen)
+## Solution
 
-App web (Next.js) con flujo self-service por **magic link**:
+App web (Next.js) **inhouse**, gratis, donde:
 
-1. Asistente se **registra** (datos básicos, sin foto).
-2. **Curación mixta**: auto-aprueba si hay cupo; organizador puede rechazar/expulsar. Sin cupo → **waitlist** (promoción manual).
-3. Aprobado recibe **mail con magic link**.
-4. Link abre página con datos precargados → **sube foto (obligatoria)**.
-5. Sistema genera **QR + badge** (negro `#0c0c14` + logo HACK IA) → descarga + mail.
-6. **Recordatorio** manual (botón).
-7. **Check-in** escaneando QR en puerta (staff con celular, online, valida token único).
-8. **Certificado PDF** a todos los confirmados.
+1. El público ve una **página del evento** (organizador, fecha, lugar, descripción).
+2. Se **registra** con un formulario propio de **campos configurables por evento**
+   (core: nombre, apellido, email; extras: teléfono, empresa, cargo, DNI, RUC).
+3. Queda **pendiente de aprobación**. Un **admin** (único rol con login) **aprueba/rechaza** a mano.
+4. Al aprobar → **email automático (Resend)** con la **URL del badge**.
+5. El invitado abre la URL (magic link, sin cuenta), **sube su foto (obligatoria)** y consiente
+   el uso de datos (Ley 29733, ADR-001).
+6. El sistema genera dos salidas:
+   - **Badge de entrada**: foto + nombre/apellido + cargo + **QR propio** + brand HACK IA. Privado.
+   - **Imagen social**: foto + brand + mensaje *"Asistiré al lanzamiento de la comunidad HACK IA"*,
+     **sin QR**, descargable/compartible.
+7. El día del evento, un **admin escanea el QR con la cámara del celular** (`/scan`):
+   marca asistencia, muestra ficha (foto+nombre+cargo), rechaza duplicado/inválido/no-aprobado.
 
-Desacople: el generador de badge/certificado recibe `{nombre, rol, foto, qr, brand}` y
-no conoce el origen del registro. Multi-evento via `event_id` en el schema desde el día 1.
+Desacople: la UI nunca toca Supabase directo; pasa por una **API interna** por `event_id`
+(reusable en otro evento). El registro vive detrás de `RegistroProvider`
+(`InhouseProvider` Supabase = principal; `LumaProvider` CSV = seed/plan B).
 
-### Estrategia de entrega — v1 simple → v2 desacoplada
+## User Stories
 
-- **v1 (MVP, $0 con Luma free):** Luma hace registro/aprobación/recordatorio/check-in.
-  Guests salen por **CSV manual** (Luma free, sin Plus). Construir SOLO: leer guests →
-  magic link → subir foto → generar badge → enviar email. Validar rápido.
-- **v2 (inhouse desacoplada):** registro/dashboard/check-in propios (Supabase), Luma fuera.
+**Asistente (sin cuenta)**
+1. Como asistente, veo la página del evento (organizador, fecha, lugar) para decidir si voy.
+2. Como asistente, me registro con un formulario con los campos que el evento pide, para solicitar lugar.
+3. Como asistente, al registrarme veo un mensaje de "pendiente de aprobación", para saber el estado.
+4. Como asistente aprobado, recibo un email con la URL de mi badge, para continuar.
+5. Como asistente, abro la URL sin crear cuenta (magic link), para no fricción.
+6. Como asistente, subo mi foto (obligatoria) y acepto el uso de mis datos, para generar mi badge.
+7. Como asistente, veo mi badge de entrada con mi QR, para usarlo en la puerta.
+8. Como asistente, descargo una imagen social con mi foto y el mensaje del evento, para postearla.
+9. Como asistente, NO puedo compartir/descargar mi QR de entrada, para no filtrar mi acceso.
+10. Como asistente, en la puerta muestro mi QR y entro rápido.
 
-**Puerto para swap barato (desde v1):**
-```ts
-interface RegistroProvider {
-  getGuests(eventId: string): Promise<Guest[]>
-  onApproved(guest: Guest): Promise<void>   // dispara magic link
-}
-// v1: LumaProvider (CSV)  ·  v2: InhouseProvider (Supabase)
+**Admin (con login)**
+11. Como admin, inicio sesión, para acceder al panel y al scanner.
+12. Como admin, configuro los campos del formulario del evento (cuáles pide y cuáles son obligatorios).
+13. Como admin, veo la lista de registrados por evento, para curar.
+14. Como admin, apruebo o rechazo cada registro a mano, para controlar quién entra.
+15. Como admin, al aprobar se dispara el email con la URL del badge, sin trabajo manual extra.
+16. Como admin, importo una vez el CSV de Luma como semilla, para no re-tipear a los ya inscritos.
+17. Como admin, escaneo el QR con la cámara de mi celular en la puerta, para marcar asistencia.
+18. Como admin, al escanear veo la foto/nombre/cargo del invitado, para confirmar identidad.
+19. Como admin, el sistema rechaza un QR ya usado, inválido o de no-aprobado, para evitar fraude.
+20. Como admin, creo un nuevo evento con su branding y campos sin tocar código, para reusar la plataforma.
+
+## Implementation Decisions
+
+**Arquitectura (desacople, P7):**
 ```
-Badge/email/check-in dependen de `RegistroProvider`, NUNCA de Luma directo.
-Swap v1→v2 = escribir `InhouseProvider`, cero cambios en el resto (criterio C3).
-
-## 3. Métrica de éxito (DoD del producto)
-
-- ✅ 50 asistentes registrados, curados y con badge entregado **sin trabajo manual por persona**.
-- ✅ Check-in de un asistente en **< 5 segundos** por QR.
-- ✅ Agregar un **segundo evento** = crear 1 fila `events` + brand, **cero cambios de código**.
-- ✅ Costo de infraestructura **$0** en el primer evento.
-
-## 4. User stories (numeradas)
-
-**Asistente**
-- US-1: Como asistente, me registro con nombre/email/rol para pedir lugar.
-- US-2: Como asistente aprobado, recibo un magic link para completar mi perfil.
-- US-3: Como asistente, subo mi foto y obtengo mi badge con QR.
-- US-4: Como asistente, descargo mi badge y lo recibo por email/WhatsApp.
-- US-5: Como asistente, en la puerta muestro mi QR y entro rápido.
-- US-6: Como asistente que asistió, recibo mi certificado PDF.
-
-**Organizador**
-- US-7: Como organizador, veo la lista de registrados y apruebo/rechazo a mano.
-- US-8: Como organizador, si no hay cupo mando a waitlist y libero al cancelar alguien.
-- US-9: Como organizador, escaneo QR en la puerta y marco asistencia.
-- US-10: Como organizador, veo métricas (registrados, confirmados, check-in, no-show).
-- US-11: Como organizador, creo un nuevo evento con su branding sin tocar código.
-
-## 5. Decisiones de implementación (stack)
-
-| Capa | Decisión | Por qué (vs crafter) |
-|---|---|---|
-| Framework | **Next.js 16 + React 19 + TS + Tailwind 4** | igual a crafter, moderno |
-| UI | **shadcn/ui** (skill `ui-styling`) | acelera, accesible |
-| DB | **Supabase Postgres** + **Drizzle ORM** | crafter usa Neon; Supabase suma Storage+Auth |
-| Storage foto | **Supabase Storage** | crafter usa Vercel Blob; 1 proveedor menos |
-| Auth / magic link | **Supabase Auth** (magic link nativo) | crafter lo hace a mano; aquí es gratis |
-| Badge | **satori + @vercel/og** → PNG | crafter usa sharp/AI; satori basta para estático |
-| QR | **qrcode** (token único, no guest_id) | seguridad check-in |
-| Certificado | **pdf-lib / react-pdf** → PDF | no existe en crafter |
-| Email | **Resend** + **React Email** (plantillas) | igual a crafter |
-| Jobs async | **Trigger.dev** (opcional, batch badges) | igual a crafter |
-| WhatsApp | **wa.me** (manual) → Kapso/Twilio (futuro pago) | crafter usa Kapso |
-| Deploy | **Vercel** free | — |
-| Dominio | subdominio de **klipso** (Namecheap): `eventos.klipso.xxx` app + `send.klipso.xxx` email | gratis; email no-spam |
-| Fuente | **Space Grotesk Bold** (Google Fonts) → `assets/fonts/` para satori | brand HACK IA |
-| Imágenes marca | **Flux Dev / Midjourney v6** (fondos/social, NO el badge) | brand HACK IA |
-| Registro v1 | **Luma free + CSV** vía `LumaProvider` | $0, swappable por puerto |
-
-### Schema (multi-evento desde día 1)
-
+UI (Next.js) → API interna (route handlers, por event_id) → RegistroProvider / BadgeService / CheckinService → Supabase
 ```
-events (
-  id uuid pk, slug text unique, name text, date timestamptz,
-  location text, capacity int, brand jsonb,
-  -- brand HACK IA: { logo_url, font:"Space Grotesk Bold",
-  --   palette:{ canvas:"#0c0c14", primary:"#6f5ff2", accent:"#00cfaa", text:"#e8e8f0" } }
-  created_at timestamptz
-)
+- UI NUNCA llama Supabase directo. La lista sale de la API interna.
+- `RegistroProvider` (puerto): `InhouseProvider` (Supabase, principal) + `LumaProvider` (CSV, seed/plan B). C3.
 
-guests (
-  id uuid pk, event_id uuid fk -> events,
-  name text, email text, role text, company text, phone text,
-  photo_url text, badge_url text,
-  status text,                 -- enum abajo
-  magic_token text unique,     -- para link self-service
-  qr_token text unique,        -- para check-in (distinto del id)
-  consent_at timestamptz,      -- ADR-001 ley 29733
-  consent_version text,        -- aviso de privacidad aceptado
-  created_at, confirmed_at, checked_in_at timestamptz
-)
+**Auth (P3):** solo **admins** tienen sesión (Supabase Auth, varios admins). Invitados sin cuenta → magic link.
 
-status enum:
-  registered -> confirmed -> photo_pending -> badge_ready -> checked_in -> no_show
-  (+ waitlisted, rejected, canceled)
+**Registro/aprobación (P1, P2, P10):** form propio; campos en `events.form_fields` (jsonb)
+`{key,label,tipo,obligatorio}`; aprobación **manual siempre**, **sin cupo/waitlist** (P7).
+
+**Schema (multi-evento, ADR-002 QR dual):**
 ```
+events ( id, slug unique, name, date, location, description, organizer,
+         brand jsonb, form_fields jsonb, created_at )
+guests ( id, event_id fk, name, last_name, email, role, company, phone, dni, ruc,
+         photo_url, badge_url, social_url,
+         status,                 -- registered|approved|badge_ready|checked_in|rejected|canceled
+         magic_token unique,     -- página de foto/badge (invitado, sin cuenta)
+         qr_token unique,        -- QR propio inhouse, ≠ id (rama B)
+         qr_url,                 -- QR de Luma (rama A, seed)
+         external_id,            -- guest_id de Luma (seed)
+         consent_at, consent_version,   -- ADR-001
+         created_at, approved_at, checked_in_at )
+```
+State machine: `registered →(admin aprueba) approved →(sube foto) badge_ready →(scan) checked_in`; `rejected`/`canceled` de salida.
 
-### Decisiones del grill (2026-06-27) — ver CONTEXT.md + ADR-001
+**Badge (satori, dos salidas, P8/P9):** `BadgeService({name,last_name,role,photo,qr,brand}) → PNG`.
+- Entrada: foto+datos+**QR propio** (de `qr_token`, → `/r/{qr_token}`). bg canvas `#0c0c14` exacto, Space Grotesk Bold.
+- Social: foto+brand+mensaje exacto, **sin QR**.
 
-- D1 Aprobación **mixta**: auto si hay cupo + expulsión manual posible.
-- D2 Foto **obligatoria** (bloquea `badge_ready`).
-- D3 **Una sola** plantilla de badge.
-- D4 Certificado a **todos los confirmados** (no exige check-in → cert puede generarse al confirmar).
-- D5 Check-in: staff con celular, escaneo QR, **online** (sin modo offline).
-- D7 Datos: **Ley 29733** → consent + borrado de fotos a 30 días (ADR-001).
-- D8 Recordatorio **manual** (botón). D9 Waitlist **promoción manual**.
+**QR (ADR-002):** rama A `qr_url` Luma (seed) · rama B `qr_token` propio escaneable. Badge inhouse usa rama B.
 
-## 6. Decisiones de testing
+**Check-in (P6):** `/scan` web, cámara del celu (`getUserMedia` + `@zxing/browser`), online, sesión admin.
+`CheckinService(qr_token) → checked_in | {error: usado|invalido|no_aprobado}`. Dedupe.
 
-- Smoke test: app levanta, registro inserta fila, magic link abre, badge se genera.
-- Unit: state machine de `status` (transiciones válidas), `qr_token` único e irrepetible.
-- Integración: registro → aprobación → mail → upload → badge → check-in (happy path).
-- Check-in: rechaza token duplicado / inexistente / de otro evento.
+**Email (P11):** Resend + React Email. Email auto al aprobar (URL badge). WhatsApp `wa.me` manual opcional.
 
-## 7. Out of scope
+**Validación:** `zod` (form, DNI 8 díg, RUC 11 díg). Env tipado `@t3-oss/env-nextjs`.
 
-**v1 (MVP):**
-- ❌ Form de registro propio + dashboard admin → lo hace Luma free en v1.
-- ❌ Certificados automáticos → v2.
-- ❌ State machine completa en DB → v1 trabaja desde CSV.
-- ❌ WhatsApp automático (v1 = wa.me manual).
+**Stack (P12, $0):** Next.js 16 + React 19 + TS + Tailwind 4 + shadcn · Supabase (DB+Storage+Auth) +
+@supabase/supabase-js (sin ORM) · satori · qrcode · @zxing/browser · Resend · zod · Vercel Hobby (no-comercial).
 
-**Siempre fuera:**
-- ❌ **Ponentes/speakers** — flujo distinto, otra área. NO contemplar.
-- ❌ Pagos / tickets pagos.
-- ❌ App nativa / kiosk de impresión física.
-- ❌ Multi-tenant para terceros (solo multi-evento nuestro).
-- ❌ Check-in offline (asume wifi en puerta).
+## Testing Decisions
 
-## 8. Módulos a tocar
+- **Buen test = comportamiento externo, no implementación.** Verificable por comando (curl/SQL/QR-decode/pixel).
+- **Seam principal (1):** la **capa de servicios/API interna**. Tests pegan a `RegistroProvider`,
+  `BadgeService`, `CheckinService` y a los route handlers (HTTP), no a clicks de UI ni a Supabase directo.
+- Módulos testeados:
+  - `RegistroProvider`: import CSV seed → count; register → pending; approve → dispara email (mock Resend).
+  - state machine: transición válida pasa, salto lanza error.
+  - `BadgeService`: PNG válido, pixel esquina `#0c0c14`, fuente cargada; QR del badge decodifica a `/r/{qr_token}`; QR ≠ guest_id.
+  - `CheckinService`: marca checked_in; rechaza duplicado/inválido/no-aprobado.
+- Smoke e2e (< 2 min): registro → aprobación → email → foto → badge → scan.
+- Pruebas **por partes**: cada servicio/issue trae su test funcional (red→green), AC por capa (D/A/U/T/S/X, ver CAPAS.md).
 
-- `db/` — schema events + guests (Drizzle)
-- `app/(public)/register` — form registro
-- `app/(public)/badge/[magic_token]` — upload foto + ver/descargar badge
-- `app/(public)/checkin/[qr_token]` — marcar asistencia
-- `app/(admin)/dashboard` — curación, aprobar/rechazar/waitlist, métricas
-- `app/api/og/badge` — gen badge (satori)
-- `lib/cert` — gen certificado (pdf-lib)
-- `lib/email` — Resend + React Email
-- `lib/jobs` — Trigger.dev (batch)
+## Out of Scope
 
-## 9. Repos de apoyo (discovery)
+**v1:** certificado PDF (v2) · WhatsApp automático/Kapso (v2) · badge en **video**/ffmpeg (v2) ·
+badge generado con IA (no aplica) · portal multi-evento navegable para usuarios (P4) ·
+cupo/waitlist (P7) · check-in offline (asume wifi) · form-builder UI drag-drop (JSON basta).
 
-- `crafter-station/vibecode-fest-badges` — capa badge (sharp/AI), Trigger.dev, Resend, Kapso. **Usa Neon + Vercel Blob + Luma API (NO Supabase).**
-- `zhravan/rsvp2go` — esquema RSVP mínimo edge.
-- `HiEventsDev/Hi.Events` — data model completo (solo leer).
-- `gath.io` — RSVP simple por email.
+**Siempre fuera:** ponentes/speakers · pagos/tickets pagos · app nativa/kiosko de impresión ·
+multi-tenant para terceros (solo multi-evento nuestro) · reverse-engineer API de Luma (ToS).
+
+## Further Notes
+
+- Evento de prueba: **Test1** (22 jul, Pacífico Seguros, San Isidro). Seed = `Luma_test/Test1*.csv` (3 inscritos).
+- No-comercial → Vercel Hobby $0. Si klipso monetiza (cobra/ads) → comercial → Vercel Pro $20 o host alterno.
+- Pendiente no bloqueante: TLD de klipso para DNS de `send.klipso.xxx` (Resend).

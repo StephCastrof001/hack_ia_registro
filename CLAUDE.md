@@ -18,8 +18,8 @@ desacoplada, **escalable a múltiples eventos** (`event_id` desde el día 1).
 
 - **Next.js 16 + React 19 + TypeScript + Tailwind 4**
 - **shadcn/ui** para componentes
-- **Supabase**: Postgres (DB) + Storage (fotos) + Auth (magic link nativo)
-- **Drizzle ORM** + drizzle-kit (schema versionado en `db/schema.ts`)
+- **Supabase**: Postgres (DB) + Storage (fotos) + Auth (login admin)
+- **@supabase/supabase-js** (sin ORM) + migraciones SQL en `supabase/migrations/` + `supabase gen types`
 - **satori + @vercel/og** → badge PNG
 - **qrcode** → QR de check-in (token único, NUNCA el guest_id)
 - **pdf-lib / react-pdf** → certificado PDF
@@ -35,7 +35,7 @@ desacoplada, **escalable a múltiples eventos** (`event_id` desde el día 1).
 ```bash
 pnpm dev            # dev server
 pnpm build          # build prod
-pnpm db:push        # drizzle-kit push (aplica schema)
+pnpm db:migrate     # aplica migraciones SQL (supabase/migrations)
 pnpm lint           # biome check
 ```
 
