@@ -72,7 +72,7 @@ export async function seedLumaGuests(
 	eventId: string,
 	csv: string,
 ): Promise<number> {
-	const { createServerSupabase } = await import("@/lib/supabase/server");
+	const { createAdminSupabase } = await import("@/lib/supabase/server");
 	const { newToken } = await import("@/lib/tokens");
 	const parsed = parseLumaCsv(csv);
 	if (parsed.length === 0) return 0;
@@ -95,7 +95,7 @@ export async function seedLumaGuests(
 		qr_token: newToken(),
 	}));
 
-	const sb = createServerSupabase();
+	const sb = createAdminSupabase();
 	const { data, error } = await sb
 		.from("guests")
 		.upsert(rows, { onConflict: "event_id,email", ignoreDuplicates: true })

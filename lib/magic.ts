@@ -1,5 +1,5 @@
 import type { GuestStatus } from "@/lib/guest-status";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createAdminSupabase } from "@/lib/supabase/server";
 
 /** Datos del invitado expuestos en la página self-service (NO tokens ajenos). */
 export interface MagicGuest {
@@ -15,7 +15,7 @@ export interface MagicGuest {
 export async function getGuestByMagicToken(
 	token: string,
 ): Promise<MagicGuest | null> {
-	const sb = createServerSupabase();
+	const sb = createAdminSupabase();
 	const { data, error } = await sb
 		.from("guests")
 		.select("id, event_id, name, last_name, status, photo_url")

@@ -1,5 +1,5 @@
 import { type GuestStatus, transition } from "@/lib/guest-status";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createAdminSupabase } from "@/lib/supabase/server";
 
 const BUCKET = "photos";
 const EXT: Record<string, string> = {
@@ -14,7 +14,7 @@ export async function uploadGuestPhoto(
 	guestId: string,
 	file: { bytes: ArrayBuffer; type: string },
 ): Promise<string> {
-	const sb = createServerSupabase();
+	const sb = createAdminSupabase();
 	const ext = EXT[file.type] ?? "jpg";
 	const path = `${eventId}/${guestId}.${ext}`;
 	const { error } = await sb.storage
@@ -35,7 +35,7 @@ export async function setGuestPhoto(
 	photoUrl: string,
 	consentVersion: string,
 ): Promise<void> {
-	const sb = createServerSupabase();
+	const sb = createAdminSupabase();
 	const next = transition(currentStatus, "badge_ready"); // valida approved→badge_ready
 	const { error } = await sb
 		.from("guests")

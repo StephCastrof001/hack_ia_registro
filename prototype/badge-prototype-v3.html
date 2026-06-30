@@ -1,0 +1,191 @@
+<!doctype html>
+<!--
+  PROTOTYPE v3 — badge HACK IA (issue #10). A-Clean. THROWAWAY.
+  Decisiones owner (v3):
+   - Variante A-Clean.
+   - SOCIAL (descargable/compartible): mensaje ARRIBA "Asistiré al lanzamiento de la comunidad [LOGO]"
+     (HACK IA = logo, no texto). Sin QR. Solo foto.
+   - ENTRADA: el asistente VE en pantalla su badge CON QR. Al DESCARGAR/compartir -> se genera la
+     versión SOCIAL (sin QR). El QR nunca viaja en la imagen pública. (artificio = 2 renders).
+   - Fondo negro MÁS DINÁMICO (arriba #0c0c14). 3 opciones satori-safe: Mesh / Mesh+grano / Mesh+grid.
+  Nota satori: NO blur, NO filtros SVG, NO animación. Sí gradientes radiales (mesh) + PNG grano.
+  Correr: start prototype/badge-prototype-v3.html
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE v3 — Badge HACK IA (A-Clean dinámico)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --canvas: #0c0c14; --primary: #6f5ff2; --accent: #00cfaa;
+    --text: #e8e8f0; --muted: #9a9ab0; --qrbg: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    background: #050509; color: var(--text);
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 16px 130px; gap: 14px;
+  }
+  .stage { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; justify-content: center; }
+
+  .badge {
+    width: 360px; height: 520px; background: var(--canvas);
+    border-radius: 24px; overflow: hidden; position: relative;
+    display: none; flex-direction: column; align-items: center; text-align: center; padding: 26px 24px;
+  }
+  .badge.show { display: flex; }
+  .layer { position: absolute; inset: 0; z-index: 0; }
+  .content { position: relative; z-index: 1; display: flex; flex-direction: column;
+             align-items: center; text-align: center; width: 100%; height: 100%; }
+  .logo { height: 26px; width: auto; }
+  .logo-inline { height: 30px; width: auto; vertical-align: middle; }
+  .brandrow { display:flex; align-items:center; justify-content:center; gap:8px; }
+  .photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
+           background: #1a1a26; border: 3px solid var(--primary); margin-top: 14px; }
+  .name { font-weight: 700; font-size: 30px; line-height: 1.05; margin-top: 18px; }
+  .uline { width: 48px; height: 4px; background: var(--primary); border-radius: 2px; margin: 12px auto; }
+  .role { color: var(--accent); font-weight: 500; font-size: 16px; }
+  .company { color: var(--muted); font-weight: 400; font-size: 13px; margin-top: 2px; }
+  .foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  .qrtile { background: var(--qrbg); border-radius: 14px; padding: 10px; display: inline-flex; }
+  .qrtile img { display: block; width: 120px; height: 120px; }
+  .tag { font-size: 11px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .topmsg { font-weight: 700; font-size: 19px; line-height: 1.3; margin-top: 6px; }
+  .topmsg .logo-inline { display:block; margin: 8px auto 0; height: 34px; }
+
+  /* badge para compartir = recorte limpio sin chrome de pantalla */
+  .sharehint { font-size: 11px; color: var(--muted); }
+
+  /* ===== FONDO 1 — Mesh (gradientes radiales apilados) ===== */
+  .bg1 .layer {
+    background:
+      radial-gradient(150px 150px at 18% 12%, rgba(111,95,242,.40), transparent 70%),
+      radial-gradient(180px 180px at 88% 22%, rgba(0,207,170,.28), transparent 70%),
+      radial-gradient(220px 200px at 50% 118%, rgba(111,95,242,.35), transparent 70%);
+  }
+  /* ===== FONDO 2 — Mesh + grano (overlay PNG via SVG turbulence data-uri en HTML; en satori = PNG) ===== */
+  .bg2 .layer {
+    background:
+      radial-gradient(160px 160px at 15% 10%, rgba(111,95,242,.45), transparent 70%),
+      radial-gradient(200px 200px at 90% 90%, rgba(0,207,170,.32), transparent 70%);
+  }
+  .bg2 .grain {
+    position: absolute; inset: 0; z-index: 0; opacity: .08; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  /* ===== FONDO 3 — Mesh + grid sutil (líneas) ===== */
+  .bg3 .layer {
+    background:
+      radial-gradient(200px 180px at 50% -8%, rgba(111,95,242,.40), transparent 70%),
+      radial-gradient(220px 200px at 50% 120%, rgba(0,207,170,.30), transparent 70%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0 1px, transparent 1px 28px);
+  }
+
+  .bar-fixed {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: #14141f; border: 1px solid #2a2a3a; border-radius: 14px;
+    padding: 10px 14px; display: flex; gap: 18px; align-items: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,.5); z-index: 10;
+  }
+  .bar-fixed .grp { display:flex; gap:6px; align-items:center; }
+  .bar-fixed label { font-size: 11px; color: var(--muted); margin-right: 4px; }
+  .bar-fixed button {
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    background: #1f1f2e; color: var(--text); border: 1px solid #2a2a3a;
+    border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  }
+  .bar-fixed button.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .state { font-size: 12px; color: var(--muted); }
+  .caption { font-size: 12px; color: var(--muted); max-width: 360px; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage"></div>
+  <div class="caption" id="caption"></div>
+
+  <div class="bar-fixed">
+    <div class="grp"><label>Fondo</label>
+      <button data-set="bg" data-val="1">1 · Mesh</button>
+      <button data-set="bg" data-val="2">2 · Mesh+grano</button>
+      <button data-set="bg" data-val="3">3 · Mesh+grid</button>
+    </div>
+    <div class="grp"><label>Vista</label>
+      <button data-set="t" data-val="entrada">Pantalla (con QR)</button>
+      <button data-set="t" data-val="social">Descarga/compartir (sin QR)</button>
+    </div>
+    <span class="state" id="state"></span>
+  </div>
+
+<script>
+  const LOGO = "../Logo/hackia_primary_dark.png";
+  const QR = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://eventos.klipso.xxx/r/SAMPLE-TOKEN";
+  const PHOTO = "https://i.pravatar.cc/300?img=47";
+
+  function badgeHTML(bg, type) {
+    const grain = bg === "2" ? `<div class="grain"></div>` : "";
+    let body;
+    if (type === "social") {
+      // mensaje arriba con LOGO (no texto "HACK IA"), sin QR, solo foto
+      body = `
+        <div class="topmsg">Asistiré al lanzamiento de la comunidad
+          <img class="logo-inline" src="${LOGO}" alt="HACK IA" onerror="this.style.display='none'"/>
+        </div>
+        <img class="photo" src="${PHOTO}" alt=""/>
+        <div class="name">Stephanie Castro</div>
+        <div class="uline"></div>
+        <div class="role">PM</div>
+        <div class="company">Klipso</div>
+        <div class="foot"><span class="sharehint">#HACKIA</span></div>`;
+    } else {
+      // pantalla: marca arriba + QR abajo
+      body = `
+        <div class="brandrow"><img class="logo" src="${LOGO}" alt="HACK IA" onerror="this.style.display='none'"/></div>
+        <img class="photo" src="${PHOTO}" alt=""/>
+        <div class="name">Stephanie Castro</div>
+        <div class="uline"></div>
+        <div class="role">PM</div>
+        <div class="company">Klipso</div>
+        <div class="foot"><span class="tag">Entrada · escanear en puerta</span>
+          <div class="qrtile"><img src="${QR}" alt="QR"/></div></div>`;
+    }
+    return `<div class="badge bg${bg} show" data-bg="${bg}" data-t="${type}">
+      <div class="layer"></div>${grain}
+      <div class="content">${body}</div>
+    </div>`;
+  }
+
+  const stage = document.getElementById("stage");
+  let bg = "1", t = "entrada";
+  function render() {
+    stage.innerHTML = badgeHTML(bg, t);
+    document.querySelectorAll(".bar-fixed button").forEach(btn => {
+      const set = btn.dataset.set, val = btn.dataset.val;
+      btn.classList.toggle("on", (set === "bg" && val === bg) || (set === "t" && val === t));
+    });
+    document.getElementById("state").textContent = `fondo=${bg} · vista=${t}`;
+    document.getElementById("caption").textContent = t === "entrada"
+      ? "Lo que VE el asistente en pantalla: badge con QR para escanear en puerta."
+      : "Lo que DESCARGA/comparte: mismo badge SIN QR (mensaje arriba + foto). El QR nunca viaja en redes.";
+  }
+  document.querySelectorAll(".bar-fixed button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.set === "bg") bg = btn.dataset.val; else t = btn.dataset.val;
+      render();
+    });
+  });
+  render();
+</script>
+
+<!--
+  ============ VERDICTO (#10) — llenar antes de borrar ============
+  A-Clean. Fondo elegido: [ 1 Mesh / 2 Mesh+grano / 3 Mesh+grid ] -> ____
+  Mensaje social arriba con logo OK? ____   Ajustes: ____
+  Flujo: pantalla=con QR / descarga=sin QR (2 renders satori). -> #6 base, #7 QR+brand.
+-->
+</body>
+</html>

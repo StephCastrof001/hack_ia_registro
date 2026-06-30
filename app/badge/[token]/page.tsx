@@ -1,5 +1,7 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { PhotoUpload } from "@/components/photo-upload";
+import logo from "@/Logo/hackia_primary_dark.svg";
 import { getGuestByMagicToken } from "@/lib/magic";
 
 // Página self-service del invitado (#4). Autenticada por magic_token (sin cuenta).
@@ -16,10 +18,8 @@ export default async function BadgePage({
 
 	return (
 		<main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 bg-[#0c0c14] px-5 py-12 text-[#e8e8f0]">
-			<header className="flex flex-col gap-1">
-				<p className="text-xs uppercase tracking-widest text-[#00cfaa]">
-					HACK IA
-				</p>
+			<header className="flex flex-col gap-1 items-start">
+				<Image src={logo} alt="HACK IA" height={24} className="mb-2 w-auto" />
 				<h1 className="text-2xl font-bold">Hola, {fullName}</h1>
 			</header>
 

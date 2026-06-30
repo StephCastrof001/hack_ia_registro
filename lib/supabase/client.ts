@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 /**
  * Cliente Supabase para BROWSER (componentes 'use client').
@@ -12,5 +12,5 @@ export function createBrowserSupabase() {
 			"Faltan NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY",
 		);
 	}
-	return createClient(url, anon);
+	return createBrowserClient(url, anon);
 }

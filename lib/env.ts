@@ -11,6 +11,8 @@ const envSchema = z.object({
 	RESEND_API_KEY: z.string().min(1),
 	EMAIL_FROM: z.string().min(1),
 	NEXT_PUBLIC_APP_URL: z.string().url(),
+	// Allowlist de admins (emails separados por coma). Gate de autorización del dashboard.
+	ADMIN_EMAILS: z.string().min(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -1,0 +1,192 @@
+<!doctype html>
+<!--
+  PROTOTYPE v2 — badge HACK IA (issue #10). A-Clean elegida. THROWAWAY.
+  Decisiones owner:
+   - Variante A-Clean.
+   - SOCIAL: sin QR, mensaje "Asistiré al lanzamiento de la comunidad HACK IA" + logo. Descargable.
+   - ENTRADA: con QR. NO descargable/compartible (QR llega solo por email).
+   - Base con más color (arriba sigue negro #0c0c14). 3 opciones: Franja / Glow / Borde+pie.
+  Correr: start prototype/badge-prototype-v2.html
+  Switch: barra abajo — Base (1/2/3) + Tipo (Entrada / Social).
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PROTOTYPE v2 — Badge HACK IA (A-Clean)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --canvas: #0c0c14;
+    --primary: #6f5ff2;
+    --accent: #00cfaa;
+    --text: #e8e8f0;
+    --muted: #9a9ab0;
+    --qrbg: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    background: #050509; color: var(--text);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 40px 16px 120px;
+  }
+  .stage { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; justify-content: center; }
+
+  /* ---------- badge base A-Clean ---------- */
+  .badge {
+    width: 360px; height: 520px;
+    background: var(--canvas);
+    border-radius: 24px; overflow: hidden; position: relative;
+    display: none; flex-direction: column;
+    align-items: center; text-align: center; padding: 26px 24px;
+  }
+  .badge.show { display: flex; }
+  .logo { height: 26px; width: auto; }
+  .brandrow { display:flex; align-items:center; justify-content:center; gap:8px; }
+  .photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover;
+           background: #1a1a26; border: 3px solid var(--primary); margin-top: 14px; }
+  .name { font-weight: 700; font-size: 30px; line-height: 1.05; margin-top: 18px; }
+  .uline { width: 48px; height: 4px; background: var(--primary); border-radius: 2px; margin: 12px auto; }
+  .role { color: var(--accent); font-weight: 500; font-size: 16px; }
+  .company { color: var(--muted); font-weight: 400; font-size: 13px; margin-top: 2px; }
+  .foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+  .qrtile { background: var(--qrbg); border-radius: 14px; padding: 10px; display: inline-flex; }
+  .qrtile img { display: block; width: 120px; height: 120px; }
+  .tag { font-size: 11px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+  .msg { font-weight: 700; font-size: 22px; line-height: 1.2; }
+  .msg .hl { color: var(--accent); }
+
+  /* ===== BASE 1 — Franja gradiente sólida abajo ===== */
+  .b1 .foot { position: relative; padding-bottom: 22px; }
+  .b1 .foot::after {
+    content: ""; position: absolute; left: -24px; right: -24px; bottom: -26px; height: 64px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+  }
+  .b1 .foot > * { position: relative; z-index: 1; }
+  .b1.social .foot::after { height: 80px; }
+
+  /* ===== BASE 2 — Glow radial difuso abajo ===== */
+  .b2 {
+    background:
+      radial-gradient(200px 160px at 30% 108%, rgba(111,95,242,.55), transparent 70%),
+      radial-gradient(220px 170px at 85% 112%, rgba(0,207,170,.45), transparent 70%),
+      var(--canvas);
+  }
+
+  /* ===== BASE 3 — Borde gradiente + pie sólido ===== */
+  .b3 { padding: 0; }
+  .b3 .frame {
+    margin: 3px; border-radius: 21px; flex: 1; display: flex; flex-direction: column;
+    align-items: center; text-align: center; padding: 24px 22px 0; background: var(--canvas);
+  }
+  .b3.wrap { background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 0; }
+  .b3 .footbar { background: linear-gradient(90deg, var(--primary), var(--accent));
+                 width: 100%; padding: 16px; margin-top: auto; }
+  .b3 .footbar .tag { color: #fff; }
+  .b3 .foot { margin-top: auto; gap: 12px; padding-bottom: 14px; }
+
+  /* ---------- floating bar ---------- */
+  .bar-fixed {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: #14141f; border: 1px solid #2a2a3a; border-radius: 14px;
+    padding: 10px 14px; display: flex; gap: 18px; align-items: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,.5); z-index: 10;
+  }
+  .bar-fixed .grp { display:flex; gap:6px; align-items:center; }
+  .bar-fixed label { font-size: 11px; color: var(--muted); margin-right: 4px; }
+  .bar-fixed button {
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    background: #1f1f2e; color: var(--text); border: 1px solid #2a2a3a;
+    border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  }
+  .bar-fixed button.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .state { font-size: 12px; color: var(--muted); }
+  .note { font-size: 11px; color: var(--muted); margin-top: 6px; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage"></div>
+
+  <div class="bar-fixed">
+    <div class="grp"><label>Base</label>
+      <button data-set="b" data-val="1">1 · Franja</button>
+      <button data-set="b" data-val="2">2 · Glow</button>
+      <button data-set="b" data-val="3">3 · Borde+pie</button>
+    </div>
+    <div class="grp"><label>Tipo</label>
+      <button data-set="t" data-val="entrada">Entrada (QR)</button>
+      <button data-set="t" data-val="social">Social (compartible)</button>
+    </div>
+    <span class="state" id="state"></span>
+  </div>
+
+<script>
+  const LOGO = "../Logo/hackia_primary_dark.png";
+  const QR = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://eventos.klipso.xxx/r/SAMPLE-TOKEN";
+  const PHOTO = "https://i.pravatar.cc/300?img=47";
+
+  function inner(type) {
+    const head = `<div class="brandrow"><img class="logo" src="${LOGO}" alt="HACK IA" onerror="this.style.display='none'"/></div>
+      <img class="photo" src="${PHOTO}" alt=""/>
+      <div class="name">Stephanie Castro</div>
+      <div class="uline"></div>
+      <div class="role">PM</div>
+      <div class="company">Klipso</div>`;
+    const foot = type === "entrada"
+      ? `<div class="foot"><span class="tag">Entrada · escanear en puerta</span>
+           <div class="qrtile"><img src="${QR}" alt="QR"/></div></div>`
+      : `<div class="foot"><div class="msg">Asistiré al lanzamiento de la comunidad <span class="hl">HACK IA</span></div></div>`;
+    return head + foot;
+  }
+
+  function buildBadge(base, type) {
+    const el = document.createElement("div");
+    el.className = `badge b${base} ${type}`;
+    el.dataset.b = base; el.dataset.t = type;
+    if (base === "3") {
+      const body = type === "entrada"
+        ? `<img class="photo" src="${PHOTO}"/><div class="name">Stephanie Castro</div><div class="uline"></div><div class="role">PM</div><div class="company">Klipso</div>`
+        : `<img class="photo" src="${PHOTO}"/><div class="name">Stephanie Castro</div><div class="uline"></div><div class="role">PM</div><div class="company">Klipso</div>`;
+      const footbar = type === "entrada"
+        ? `<div class="foot"><div class="qrtile"><img src="${QR}" alt="QR"/></div></div><div class="footbar"><span class="tag">Entrada · escanear en puerta</span></div>`
+        : `<div class="foot"><div class="msg">Asistiré al lanzamiento de la comunidad <span class="hl" style="color:#fff">HACK IA</span></div></div><div class="footbar"><span class="tag">Comunidad HACK IA</span></div>`;
+      el.classList.add("wrap");
+      el.innerHTML = `<div class="frame"><div class="brandrow"><img class="logo" src="${LOGO}" onerror="this.style.display='none'"/></div>${body}${footbar}</div>`;
+    } else {
+      el.innerHTML = inner(type);
+    }
+    return el;
+  }
+
+  const stage = document.getElementById("stage");
+  let b = "1", t = "entrada";
+  function render() {
+    stage.innerHTML = "";
+    const badge = buildBadge(b, t);
+    badge.classList.add("show");
+    stage.appendChild(badge);
+    document.querySelectorAll(".bar-fixed button").forEach(btn => {
+      const set = btn.dataset.set, val = btn.dataset.val;
+      btn.classList.toggle("on", (set === "b" && val === b) || (set === "t" && val === t));
+    });
+    document.getElementById("state").textContent = `base=${b} · tipo=${t}`;
+  }
+  document.querySelectorAll(".bar-fixed button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.dataset.set === "b") b = btn.dataset.val; else t = btn.dataset.val;
+      render();
+    });
+  });
+  render();
+</script>
+
+<!--
+  ============ VERDICTO (#10 review gate) — llenar antes de borrar ============
+  A-Clean confirmada. Base elegida: [ 1 Franja / 2 Glow / 3 Borde+pie ] -> ____
+  Ajustes: ____
+  -> Absorber en #6 (render satori) + #7 (QR/brand). Social descargable, Entrada NO (QR por email).
+-->
+</body>
+</html>

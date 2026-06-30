@@ -1,5 +1,5 @@
 import { transition } from "@/lib/guest-status";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { createAdminSupabase } from "@/lib/supabase/server";
 import { newToken } from "@/lib/tokens";
 import type { Guest, RegisterInput, RegistroProvider } from "./types";
 
@@ -9,7 +9,7 @@ import type { Guest, RegisterInput, RegistroProvider } from "./types";
  */
 export const InhouseProvider: RegistroProvider = {
 	async register(eventId, input: RegisterInput): Promise<Guest> {
-		const sb = createServerSupabase();
+		const sb = createAdminSupabase();
 		const { data, error } = await sb
 			.from("guests")
 			.insert({
@@ -33,7 +33,7 @@ export const InhouseProvider: RegistroProvider = {
 	},
 
 	async getGuests(eventId): Promise<Guest[]> {
-		const sb = createServerSupabase();
+		const sb = createAdminSupabase();
 		const { data, error } = await sb
 			.from("guests")
 			.select("*")
@@ -44,7 +44,7 @@ export const InhouseProvider: RegistroProvider = {
 	},
 
 	async approve(guestId): Promise<Guest> {
-		const sb = createServerSupabase();
+		const sb = createAdminSupabase();
 		const { data: current, error: e1 } = await sb
 			.from("guests")
 			.select("status")
