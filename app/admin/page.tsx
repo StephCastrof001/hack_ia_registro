@@ -34,15 +34,36 @@ export default async function AdminPage(props: {
 	const sb = createAdminSupabase();
 
 	if (!eventId) {
+		const { data: events } = await sb
+			.from("events")
+			.select("id, slug, name")
+			.order("created_at", { ascending: false });
+
 		return (
 			<div className="p-8 max-w-4xl mx-auto text-white">
-				<h1 className="text-2xl font-bold text-red-500 mb-4">
-					Error: Falta eventId
-				</h1>
-				<p>
-					Por favor, incluye el ID del evento en la URL:{" "}
-					<code>?eventId=TU_UUID</code>
-				</p>
+				<h1 className="text-3xl font-bold mb-6">Selecciona un Evento</h1>
+				<div className="grid gap-4">
+					{events?.map((ev) => (
+						<a
+							key={ev.id}
+							href={`/admin?eventId=${ev.id}`}
+							className="block p-6 rounded-lg border border-gray-800 bg-gray-900/50 hover:bg-gray-800 transition-colors"
+						>
+							<h2 className="text-xl font-semibold text-[#00cfaa] mb-2">
+								{ev.name}
+							</h2>
+							<p className="text-sm text-gray-400 font-mono text-xs">
+								Slug: {ev.slug}
+							</p>
+							<p className="text-sm text-gray-400 font-mono text-xs mt-1">
+								ID: {ev.id}
+							</p>
+						</a>
+					))}
+					{!events?.length && (
+						<p className="text-gray-500">No hay eventos creados.</p>
+					)}
+				</div>
 			</div>
 		);
 	}
