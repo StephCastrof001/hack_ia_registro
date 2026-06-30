@@ -59,8 +59,8 @@ export default async function BadgePage({
 							Descargar para compartir
 						</a>
 						<p className="text-xs leading-relaxed text-white/50">
-							El QR es solo para la puerta. La versión que descargás para redes va
-							sin QR.
+							El QR es solo para la puerta. La versión que descargás para redes
+							va sin QR.
 						</p>
 					</section>
 				)}
