@@ -65,7 +65,6 @@ export async function getEventBySlug(slug: string): Promise<EventRow | null> {
 	const event = data as EventRow | null;
 
 	if (event && event.slug === "test1") {
-		event.name = "Primer evento: lanzamiento comunidad";
 		// DEUDA TÉCNICA (manual, demo): las columnas end_date/location_type/location_url
 		// no existen en DB todavía (refine = supabase/migrations/0002_event_location_fields.sql).
 		// Inyectadas acá para el evento de demo. Al migrar + cargar desde el form, borrar esto.
