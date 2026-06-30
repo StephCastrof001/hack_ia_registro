@@ -57,6 +57,9 @@ export function buildPendingEmail(
 	eventDate?: string | null,
 	eventLocation?: string | null,
 	locationUrl?: string | null,
+	endDate?: string | null,
+	locationType?: string | null,
+	instructions?: string | null,
 ): {
 	subject: string;
 	html: string;
@@ -65,42 +68,73 @@ export function buildPendingEmail(
 	const safeEventName = escapeHtml(eventName);
 
 	let detailsHtml = "";
-	if (eventDate || eventLocation) {
-		const formattedDate = eventDate
-			? new Date(eventDate).toLocaleDateString("es-PE", {
-					weekday: "long",
-					month: "long",
-					day: "numeric",
-					hour: "2-digit",
-					minute: "2-digit",
-				})
-			: "";
+	if (eventDate || eventLocation || instructions) {
+		let dateStr = "";
+		if (eventDate) {
+			const startD = new Date(eventDate);
+			dateStr = startD.toLocaleDateString("es-PE", {
+				weekday: "long",
+				month: "long",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+			if (endDate) {
+				const endD = new Date(endDate);
+				if (startD.toLocaleDateString() === endD.toLocaleDateString()) {
+					dateStr += \` - \${endD.toLocaleTimeString("es-PE", {
+						hour: "2-digit",
+						minute: "2-digit",
+					})}\`;
+				} else {
+					dateStr += \` hasta \${endD.toLocaleDateString("es-PE", {
+						weekday: "long",
+						month: "long",
+						day: "numeric",
+						hour: "2-digit",
+						minute: "2-digit",
+					})}\`;
+				}
+			}
+		}
 
 		const locationHtml = eventLocation
 			? locationUrl
-				? `<a href="${escapeHtml(
+				? \`<a href="\${escapeHtml(
 						locationUrl,
-					)}" target="_blank" style="color: #6f5ff2; text-decoration: underline;">📍 <strong>${escapeHtml(
+					)}" target="_blank" style="color: #6f5ff2; text-decoration: underline;">📍 <strong>\${escapeHtml(
 						eventLocation,
-					)}</strong></a>`
-				: `<p style="margin: 0; font-size: 14px; color: #e8e8f0;">📍 <strong>${escapeHtml(
+					)}</strong></a>\`
+				: \`<p style="margin: 0; font-size: 14px; color: #e8e8f0;">📍 <strong>\${escapeHtml(
 						eventLocation,
-					)}</strong></p>`
+					)}</strong></p>\`
 			: "";
 
-		detailsHtml = `
+		const locationTypeHtml = locationType
+			? \`<span style="display: inline-block; padding: 2px 8px; border-radius: 12px; background-color: rgba(255,255,255,0.1); font-size: 12px; margin-bottom: 4px;">\${escapeHtml(locationType)}</span><br/>\`
+			: "";
+
+		const instructionsHtml = instructions
+			? \`<div style="margin-top: 12px; padding: 12px; background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; font-size: 13px; color: #e8e8f0;">
+					<strong>ℹ️ Instrucciones:</strong><br/>
+					\${escapeHtml(instructions)}
+				</div>\`
+			: "";
+
+		detailsHtml = \`
 		<div style="margin-top: 24px; padding: 16px; background-color: #0c0c14; border-radius: 6px; text-align: left;">
-			${
-				formattedDate
-					? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #e8e8f0;">📅 <strong>${formattedDate}</strong></p>`
+			\${
+				dateStr
+					? \`<p style="margin: 0 0 8px 0; font-size: 14px; color: #e8e8f0;">📅 <strong>\${dateStr}</strong></p>\`
 					: ""
 			}
-			${locationHtml}
+			\${eventLocation ? locationTypeHtml + locationHtml : ""}
+			\${instructionsHtml}
 		</div>
-		`;
+		\`;
 	}
 
-	const html = `
+	const html = \`
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -110,17 +144,17 @@ export function buildPendingEmail(
 <body style="background-color: #0c0c14; color: #e8e8f0; font-family: sans-serif; padding: 24px; text-align: center;">
   <div style="max-width: 600px; margin: 0 auto; background-color: #1a1a24; padding: 32px; border-radius: 8px;">
     <h1 style="color: #6f5ff2; margin-top: 0;">¡Solicitud Recibida!</h1>
-    <p style="font-size: 16px; line-height: 1.5;">Hola <strong>${safeName}</strong>,</p>
-    <p style="font-size: 16px; line-height: 1.5;">Hemos recibido tu solicitud para participar en <strong>${safeEventName}</strong>.</p>
-    ${detailsHtml}
+    <p style="font-size: 16px; line-height: 1.5;">Hola <strong>\${safeName}</strong>,</p>
+    <p style="font-size: 16px; line-height: 1.5;">Hemos recibido tu solicitud para participar en <strong>\${safeEventName}</strong>.</p>
+    \${detailsHtml}
     <p style="font-size: 16px; line-height: 1.5; margin-top: 24px;">Actualmente tu inscripción se encuentra en estado <strong style="color: #00cfaa;">Pendiente de Aprobación</strong>. Nos pondremos en contacto contigo pronto por este mismo medio con tu entrada oficial.</p>
   </div>
 </body>
 </html>
-`.trim();
+\`.trim();
 
 	return {
-		subject: `Solicitud recibida para ${safeEventName}`,
+		subject: \`Solicitud recibida para \${safeEventName}\`,
 		html,
 	};
 }

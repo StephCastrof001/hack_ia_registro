@@ -37,15 +37,21 @@ export default async function AdminPage(props: {
 				<div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[#6f5ff2]/20 rounded-full blur-[120px] pointer-events-none" />
 				<div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[#00cfaa]/10 rounded-full blur-[120px] pointer-events-none" />
 				
-				<div className="max-w-5xl mx-auto relative z-10">
-					<header className="mb-12 flex items-center justify-between">
-						<div>
-							<h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
-								Eventos Activos
-							</h1>
-							<p className="mt-3 text-lg text-white/50">
-								Selecciona un evento para gestionar sus invitados.
-							</p>
+						<div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+							<div>
+								<h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+									Eventos Activos
+								</h1>
+								<p className="mt-3 text-lg text-white/50">
+									Selecciona un evento para gestionar sus invitados.
+								</p>
+							</div>
+							<a
+								href="/admin/create"
+								className="px-5 py-3 rounded-xl bg-[#6f5ff2] text-white font-bold hover:bg-[#5a4bd1] transition-colors shadow-[0_0_20px_rgba(111,95,242,0.3)] hover:shadow-[0_0_30px_rgba(111,95,242,0.5)] self-start md:self-center"
+							>
+								+ Crear Evento
+							</a>
 						</div>
 					</header>
 

@@ -13,11 +13,15 @@ export interface EventRow {
 	id: string;
 	slug: string;
 	name: string;
-	event_date: string | null;
-	location: string | null;
-	location_url: string | null;
-	description: string | null;
-	organizer: string | null;
+	event_date?: string | null;
+	end_date?: string | null;
+	location_type?: string | null;
+	location?: string | null;
+	location_url?: string | null;
+	instructions?: string | null;
+	description?: string | null;
+	organizer?: string | null;
+	brand: BrandConfig;
 	form_fields: FormField[];
 }
 
@@ -26,22 +30,36 @@ export async function getEventBySlug(slug: string): Promise<EventRow | null> {
 	let { data, error } = await sb
 		.from("events")
 		.select(
-			"id, slug, name, event_date, location, location_url, description, organizer, form_fields",
+			"id, slug, name, event_date, end_date, location_type, location, location_url, instructions, description, organizer, form_fields",
 		)
 		.eq("slug", slug)
 		.maybeSingle();
 
-	// Fallback si la columna location_url no existe en DB
+	// Fallback si las nuevas columnas no existen en DB
 	if (error && error.code === "42703") {
 		const fallback = await sb
 			.from("events")
 			.select(
-				"id, slug, name, event_date, location, description, organizer, form_fields",
+				"id, slug, name, event_date, location, location_url, description, organizer, form_fields",
 			)
 			.eq("slug", slug)
 			.maybeSingle();
-		data = fallback.data;
-		error = fallback.error;
+		
+		if (fallback.error && fallback.error.code === "42703") {
+			// Segundo fallback (si tampoco existe location_url)
+			const fallback2 = await sb
+				.from("events")
+				.select(
+					"id, slug, name, event_date, location, description, organizer, form_fields",
+				)
+				.eq("slug", slug)
+				.maybeSingle();
+			data = fallback2.data;
+			error = fallback2.error;
+		} else {
+			data = fallback.data;
+			error = fallback.error;
+		}
 	}
 
 	if (error) throw error;

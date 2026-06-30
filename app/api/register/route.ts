@@ -25,12 +25,12 @@ export async function POST(req: Request) {
 		// Enviar email de pendiente (sin bloquear la respuesta 201)
 		const sb = createAdminSupabase();
 		sb.from("events")
-			.select("name, event_date, location, location_url")
+			.select("name, event_date, end_date, location_type, location, location_url, instructions")
 			.eq("id", eventId)
 			.single()
 			.then(({ data, error }) => {
 				if (error) {
-					// Fallback si la columna location_url no existe
+					// Fallback si las nuevas columnas no existen en DB
 					sb.from("events")
 						.select("name, event_date, location")
 						.eq("id", eventId)
@@ -53,6 +53,9 @@ export async function POST(req: Request) {
 						data.event_date,
 						data.location,
 						data.location_url,
+						data.end_date,
+						data.location_type,
+						data.instructions,
 					);
 				}
 			});
