@@ -16,7 +16,11 @@ export default async function EventPage({
 
 	const date = event.event_date
 		? new Date(event.event_date).toLocaleDateString("es-PE", {
-				dateStyle: "long",
+				weekday: "long",
+				month: "long",
+				day: "numeric",
+				hour: "2-digit",
+				minute: "2-digit",
 			})
 		: null;
 
