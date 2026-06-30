@@ -42,6 +42,7 @@ export async function sendPendingEmail(
 	eventName: string,
 	eventDate?: string | null,
 	eventLocation?: string | null,
+	locationUrl?: string | null,
 ): Promise<{ ok: boolean; id?: string; error?: string }> {
 	try {
 		const env = getEnv();
@@ -51,6 +52,7 @@ export async function sendPendingEmail(
 			eventName,
 			eventDate,
 			eventLocation,
+			locationUrl,
 		);
 
 		const { data, error } = await resend.emails.send({

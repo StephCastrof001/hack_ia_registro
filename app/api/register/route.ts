@@ -25,18 +25,36 @@ export async function POST(req: Request) {
 		// Enviar email de pendiente (sin bloquear la respuesta 201)
 		const sb = createAdminSupabase();
 		sb.from("events")
-			.select("name, event_date, location")
+			.select("name, event_date, location, location_url")
 			.eq("id", eventId)
 			.single()
-			.then(({ data }) => {
-				if (data)
+			.then(({ data, error }) => {
+				if (error) {
+					// Fallback si la columna location_url no existe
+					sb.from("events")
+						.select("name, event_date, location")
+						.eq("id", eventId)
+						.single()
+						.then(({ data: fallbackData }) => {
+							if (fallbackData)
+								sendPendingEmail(
+									input.email,
+									input.name,
+									fallbackData.name,
+									fallbackData.event_date,
+									fallbackData.location,
+								);
+						});
+				} else if (data) {
 					sendPendingEmail(
 						input.email,
 						input.name,
 						data.name,
 						data.event_date,
 						data.location,
+						data.location_url,
 					);
+				}
 			});
 
 		// NO devolver tokens al cliente — solo el estado.

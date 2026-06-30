@@ -56,6 +56,7 @@ export function buildPendingEmail(
 	eventName: string,
 	eventDate?: string | null,
 	eventLocation?: string | null,
+	locationUrl?: string | null,
 ): {
 	subject: string;
 	html: string;
@@ -75,6 +76,18 @@ export function buildPendingEmail(
 				})
 			: "";
 
+		const locationHtml = eventLocation
+			? locationUrl
+				? `<a href="${escapeHtml(
+						locationUrl,
+					)}" target="_blank" style="color: #6f5ff2; text-decoration: underline;">📍 <strong>${escapeHtml(
+						eventLocation,
+					)}</strong></a>`
+				: `<p style="margin: 0; font-size: 14px; color: #e8e8f0;">📍 <strong>${escapeHtml(
+						eventLocation,
+					)}</strong></p>`
+			: "";
+
 		detailsHtml = `
 		<div style="margin-top: 24px; padding: 16px; background-color: #0c0c14; border-radius: 6px; text-align: left;">
 			${
@@ -82,13 +95,7 @@ export function buildPendingEmail(
 					? `<p style="margin: 0 0 8px 0; font-size: 14px; color: #e8e8f0;">📅 <strong>${formattedDate}</strong></p>`
 					: ""
 			}
-			${
-				eventLocation
-					? `<p style="margin: 0; font-size: 14px; color: #e8e8f0;">📍 <strong>${escapeHtml(
-							eventLocation,
-						)}</strong></p>`
-					: ""
-			}
+			${locationHtml}
 		</div>
 		`;
 	}
@@ -113,7 +120,7 @@ export function buildPendingEmail(
 `.trim();
 
 	return {
-		subject: \`Solicitud recibida para \${safeEventName}\`,
+		subject: `Solicitud recibida para ${safeEventName}`,
 		html,
 	};
 }

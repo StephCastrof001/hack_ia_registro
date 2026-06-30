@@ -21,16 +21,29 @@ export interface EventRow {
 	form_fields: FormField[];
 }
 
-/** Lee un evento por slug (server). Null si no existe. */
 export async function getEventBySlug(slug: string): Promise<EventRow | null> {
 	const sb = createAdminSupabase();
-	const { data, error } = await sb
+	let { data, error } = await sb
 		.from("events")
 		.select(
-			"id, slug, name, event_date, location, description, organizer, form_fields",
+			"id, slug, name, event_date, location, location_url, description, organizer, form_fields",
 		)
 		.eq("slug", slug)
 		.maybeSingle();
+
+	// Fallback si la columna location_url no existe en DB
+	if (error && error.code === "42703") {
+		const fallback = await sb
+			.from("events")
+			.select(
+				"id, slug, name, event_date, location, description, organizer, form_fields",
+			)
+			.eq("slug", slug)
+			.maybeSingle();
+		data = fallback.data;
+		error = fallback.error;
+	}
+
 	if (error) throw error;
 	const event = data as EventRow | null;
 
