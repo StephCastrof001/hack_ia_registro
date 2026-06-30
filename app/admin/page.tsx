@@ -40,29 +40,48 @@ export default async function AdminPage(props: {
 			.order("created_at", { ascending: false });
 
 		return (
-			<div className="p-8 max-w-4xl mx-auto text-white">
-				<h1 className="text-3xl font-bold mb-6">Selecciona un Evento</h1>
-				<div className="grid gap-4">
-					{events?.map((ev) => (
-						<a
-							key={ev.id}
-							href={`/admin?eventId=${ev.id}`}
-							className="block p-6 rounded-lg border border-gray-800 bg-gray-900/50 hover:bg-gray-800 transition-colors"
-						>
-							<h2 className="text-xl font-semibold text-[#00cfaa] mb-2">
-								{ev.name}
-							</h2>
-							<p className="text-sm text-gray-400 font-mono text-xs">
-								Slug: {ev.slug}
+			<div className="min-h-screen bg-[#0c0c14] text-[#e8e8f0] font-sans selection:bg-[#6f5ff2]/30 p-6 md:p-12 relative overflow-hidden">
+				{/* Background Glows */}
+				<div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-[#6f5ff2]/20 rounded-full blur-[120px] pointer-events-none" />
+				<div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[#00cfaa]/10 rounded-full blur-[120px] pointer-events-none" />
+				
+				<div className="max-w-5xl mx-auto relative z-10">
+					<header className="mb-12 flex items-center justify-between">
+						<div>
+							<h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+								Eventos Activos
+							</h1>
+							<p className="mt-3 text-lg text-white/50">
+								Selecciona un evento para gestionar sus invitados.
 							</p>
-							<p className="text-sm text-gray-400 font-mono text-xs mt-1">
-								ID: {ev.id}
-							</p>
-						</a>
-					))}
-					{!events?.length && (
-						<p className="text-gray-500">No hay eventos creados.</p>
-					)}
+						</div>
+					</header>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+						{events?.map((ev) => (
+							<a
+								key={ev.id}
+								href={`/admin?eventId=${ev.id}`}
+								className="group relative block p-8 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-[#6f5ff2]/50 hover:bg-white/[0.04] transition-all duration-300 overflow-hidden shadow-lg hover:shadow-[0_0_30px_rgba(111,95,242,0.15)]"
+							>
+								<div className="absolute inset-0 bg-gradient-to-br from-[#6f5ff2]/0 via-transparent to-[#6f5ff2]/0 group-hover:from-[#6f5ff2]/10 transition-all duration-500" />
+								<div className="relative z-10">
+									<div className="w-12 h-12 rounded-full bg-[#6f5ff2]/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+										<span className="text-2xl">📅</span>
+									</div>
+									<h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#6f5ff2] transition-colors">
+										{ev.name}
+									</h2>
+									<p className="text-sm text-white/40 font-mono">/{ev.slug}</p>
+								</div>
+							</a>
+						))}
+						{!events?.length && (
+							<div className="col-span-full p-12 text-center rounded-2xl border border-dashed border-white/10 bg-white/[0.01]">
+								<p className="text-white/40 text-lg">No hay eventos creados.</p>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 		);
@@ -76,92 +95,124 @@ export default async function AdminPage(props: {
 
 	if (error) {
 		return (
-			<div className="p-8 max-w-4xl mx-auto text-red-500">
+			<div className="min-h-screen bg-[#0c0c14] flex items-center justify-center p-8 text-red-400">
 				Error cargando guests: {error.message}
 			</div>
 		);
 	}
 
 	return (
-		<div className="p-8 max-w-4xl mx-auto text-white">
-			<h1 className="text-3xl font-bold mb-8">Dashboard Admin</h1>
+		<div className="min-h-screen bg-[#0c0c14] text-[#e8e8f0] font-sans selection:bg-[#6f5ff2]/30 p-4 md:p-8 relative overflow-hidden">
+			{/* Background Glows */}
+			<div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#6f5ff2]/10 rounded-full blur-[120px] pointer-events-none" />
 
-			<div className="overflow-x-auto rounded-lg border border-gray-800 bg-gray-900/50">
-				<table className="w-full text-left border-collapse">
-					<thead>
-						<tr className="border-b border-gray-800 text-gray-400">
-							<th className="p-4 font-medium">Nombre</th>
-							<th className="p-4 font-medium">Email</th>
-							<th className="p-4 font-medium">Estado</th>
-							<th className="p-4 font-medium text-right">Acciones</th>
-						</tr>
-					</thead>
-					<tbody>
-						{guests?.map((guest) => (
-							<tr
-								key={guest.id}
-								className="border-b border-gray-800/50 hover:bg-gray-800/20"
-							>
-								<td className="p-4">
-									{guest.name} {guest.last_name || ""}
-								</td>
-								<td className="p-4 text-gray-400">{guest.email}</td>
-								<td className="p-4">
-									<span
-										className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-											guest.status === "approved"
-												? "bg-green-900/30 text-green-400"
-												: guest.status === "rejected"
-													? "bg-red-900/30 text-red-400"
-													: "bg-gray-800 text-gray-300"
-										}`}
+			<div className="max-w-6xl mx-auto relative z-10">
+				<header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+					<div>
+						<a
+							href="/admin"
+							className="inline-flex items-center gap-2 text-sm text-white/50 hover:text-white mb-4 transition-colors"
+						>
+							← Volver a Eventos
+						</a>
+						<h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+							Panel de Invitados
+						</h1>
+						<p className="mt-2 text-white/50">Gestiona los accesos al evento.</p>
+					</div>
+					<div className="px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.05] text-sm text-white/60">
+						Total: <strong className="text-white">{guests?.length || 0}</strong>
+					</div>
+				</header>
+
+				<div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] backdrop-blur-xl overflow-hidden shadow-2xl">
+					<div className="overflow-x-auto">
+						<table className="w-full text-left border-collapse whitespace-nowrap">
+							<thead>
+								<tr className="border-b border-white/[0.05] bg-white/[0.03]">
+									<th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-white/40">Invitado</th>
+									<th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-white/40">Email</th>
+									<th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-white/40">Estado</th>
+									<th className="px-6 py-4 font-semibold text-xs uppercase tracking-wider text-white/40 text-right">Acción</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-white/[0.02]">
+								{guests?.map((guest) => (
+									<tr
+										key={guest.id}
+										className="group hover:bg-white/[0.04] transition-colors"
 									>
-										{guest.status}
-									</span>
-								</td>
-								<td className="p-4 flex gap-2 justify-end">
-									{guest.status === "registered" && (
-										<>
-											<form
-												action={async () => {
-													"use server";
-													await approveGuest(guest.id, eventId);
-												}}
+										<td className="px-6 py-4">
+											<div className="font-medium text-white group-hover:text-[#6f5ff2] transition-colors">
+												{guest.name} {guest.last_name || ""}
+											</div>
+										</td>
+										<td className="px-6 py-4 text-sm text-white/50 font-mono">
+											{guest.email}
+										</td>
+										<td className="px-6 py-4">
+											<span
+												className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide border ${
+													guest.status === "approved"
+														? "bg-[#00cfaa]/10 text-[#00cfaa] border-[#00cfaa]/20 shadow-[0_0_10px_rgba(0,207,170,0.2)]"
+														: guest.status === "rejected"
+															? "bg-red-500/10 text-red-400 border-red-500/20"
+															: "bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]"
+												}`}
 											>
-												<button
-													type="submit"
-													className="px-3 py-1.5 bg-green-600/90 hover:bg-green-500 text-white rounded text-sm transition-colors"
-												>
-													Aprobar
-												</button>
-											</form>
-											<form
-												action={async () => {
-													"use server";
-													await rejectGuest(guest.id, eventId);
-												}}
-											>
-												<button
-													type="submit"
-													className="px-3 py-1.5 bg-red-600/90 hover:bg-red-500 text-white rounded text-sm transition-colors"
-												>
-													Rechazar
-												</button>
-											</form>
-										</>
-									)}
-								</td>
-							</tr>
-						))}
-						{!guests?.length && (
-							<tr>
-								<td colSpan={4} className="p-8 text-center text-gray-500">
-									No hay invitados registrados para este evento.
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+												{guest.status === "registered" ? "pendiente" : guest.status}
+											</span>
+										</td>
+										<td className="px-6 py-4 text-right">
+											{guest.status === "registered" ? (
+												<div className="flex items-center justify-end gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+													<form
+														action={async () => {
+															"use server";
+															await approveGuest(guest.id, eventId);
+														}}
+													>
+														<button
+															type="submit"
+															className="px-4 py-1.5 rounded-lg bg-[#6f5ff2] hover:bg-[#5b4be0] text-white text-sm font-medium transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(111,95,242,0.4)]"
+														>
+															Aprobar
+														</button>
+													</form>
+													<form
+														action={async () => {
+															"use server";
+															await rejectGuest(guest.id, eventId);
+														}}
+													>
+														<button
+															type="submit"
+															className="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-red-500/20 text-white/60 hover:text-red-400 text-sm font-medium transition-colors"
+														>
+															✕
+														</button>
+													</form>
+												</div>
+											) : (
+												<span className="text-white/20 text-sm">--</span>
+											)}
+										</td>
+									</tr>
+								))}
+								{!guests?.length && (
+									<tr>
+										<td colSpan={4} className="px-6 py-12 text-center">
+											<div className="inline-flex flex-col items-center justify-center text-white/30">
+												<span className="text-4xl mb-3">📭</span>
+												<p>Nadie se ha registrado todavía.</p>
+											</div>
+										</td>
+									</tr>
+								)}
+							</tbody>
+						</table>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
