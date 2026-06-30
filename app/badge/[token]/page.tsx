@@ -40,23 +40,28 @@ export default async function BadgePage({
 				)}
 
 				{guest.status === "badge_ready" && (
-					<section className="flex flex-col items-center gap-4 rounded-2xl border border-[#00cfaa]/25 bg-[#00cfaa]/[0.06] p-6 text-center">
-						{guest.photo_url && (
-							// biome-ignore lint/performance/noImgElement: preview simple, no Next/Image
-							<img
-								src={guest.photo_url}
-								alt="Tu foto"
-								className="h-32 w-32 rounded-full border-2 border-[#6f5ff2] object-cover shadow-[0_0_28px_rgba(111,95,242,0.35)]"
-							/>
-						)}
-						<div>
-							<p className="font-semibold text-[#00cfaa]">
-								Tu badge está listo 🎫
-							</p>
-							<p className="mt-1 text-sm text-white/60">
-								Lo recibís por email para mostrar en la puerta.
-							</p>
-						</div>
+					<section className="flex flex-col items-center gap-4 rounded-2xl border border-[#00cfaa]/25 bg-[#00cfaa]/[0.06] p-5 text-center">
+						<p className="font-semibold text-[#00cfaa]">
+							Tu badge está listo 🎫
+						</p>
+						{/* Badge real (con QR) — lo que mostrás en la puerta */}
+						{/* biome-ignore lint/performance/noImgElement: PNG dinámico de satori */}
+						<img
+							src={`/api/badge/${token}`}
+							alt="Tu badge HACK IA"
+							className="w-full max-w-[280px] rounded-2xl border border-white/10 shadow-[0_0_32px_rgba(111,95,242,0.25)]"
+						/>
+						<a
+							href={`/api/badge/${token}?download=1`}
+							download="badge-hackia.png"
+							className="w-full rounded-xl bg-[#6f5ff2] px-4 py-3 text-sm font-bold text-white shadow-[0_0_24px_rgba(111,95,242,0.35)] transition-all hover:bg-[#5a4be0]"
+						>
+							Descargar para compartir
+						</a>
+						<p className="text-xs leading-relaxed text-white/50">
+							El QR es solo para la puerta. La versión que descargás para redes va
+							sin QR.
+						</p>
 					</section>
 				)}
 
